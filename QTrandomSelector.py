@@ -24,7 +24,6 @@ class WindowClass(QMainWindow, form_class):
         self.findButton.clicked.connect(self.random_play)
 
     def dir_path_button(self):
-        self.dir_list.clear()
         self.path = QFileDialog.getExistingDirectory(self, 'Select Directory')
         if self.path:
             self.dir_list = os.listdir(self.path)
