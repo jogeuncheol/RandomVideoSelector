@@ -3,6 +3,8 @@ import sys
 import random
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
+from PyQt5.QtGui import QStandardItemModel
+from PyQt5.QtGui import QStandardItem
 
 
 # UI파일 연결
@@ -14,7 +16,8 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-form = resource_path('randomOpen.ui')
+# form = resource_path('randomOpen.ui')
+form = resource_path('randomPlay.ui')
 form_class = uic.loadUiType(form)[0]
 
 
@@ -29,13 +32,45 @@ class WindowClass(QMainWindow, form_class):
                            'gif', 'm4p', 'mpg', 'mpeg', 'svi']
 
         # 버튼에 기능을 연결하는 코드
-        self.pathButton.clicked.connect(self.dir_path_button)
-        self.findButton.clicked.connect(self.random_play)
+        # self.pathButton.clicked.connect(self.dir_path_button)
+        self.toolButton.clicked.connect(self.dir_path_button)
+        # self.findButton.clicked.connect(self.random_play)
+        self.playButton.clicked.connect(self.random_play)
+
+    def find_video(self):
+        video_list = []
+        for video_name in self.dir_list:
+            if '.' in video_name:
+                if video_name.split('.')[-1] in self.format_lsit:
+                    video_list.append(video_name)
+            else:
+                continue
+        if len(video_list):
+            self.dir_list.clear()
+            self.dir_list = video_list
+            return True
+        else:
+            QMessageBox.question(self, 'Error', '해당 경로에 영상파일이 없습니다.', QMessageBox.Ok, QMessageBox.NoButton)
+            return False
+
+    def set_view(self):
+        model = QStandardItemModel()
+        for video in self.dir_list:
+            model.appendRow(QStandardItem(video))
+        self.listView.setModel(model)
 
     def dir_path_button(self):
+        backup_path = self.path
+        backup_list = self.dir_list
         self.path = QFileDialog.getExistingDirectory(self, 'Select Directory')
         if self.path:
             self.dir_list = os.listdir(self.path)
+            if self.find_video():
+                self.set_view()
+                self.pathText.setText(self.path)
+            else:
+                self.path = backup_path
+                self.dir_list = backup_list
 
     def random_play(self):
         # path 설정이 되어있지 않으면 리턴
@@ -47,9 +82,9 @@ class WindowClass(QMainWindow, form_class):
         if self.dir_list[random_idx].split('.')[1] not in self.format_lsit:
             return
         # 경로와 파일 이름 붙여 실행하기
-        random_video = self.path + '\\' + self.dir_list[random_idx]
+        random_video = self.path + '/' + self.dir_list[random_idx]
         os.startfile(random_video)
-        self.textEdit.setText(self.dir_list[random_idx])
+        self.videoName.setText(self.dir_list[random_idx])
 
 
 if __name__ == "__main__" :
